@@ -92,6 +92,9 @@ void Flying() {
   //
   //******************************************************************
 
+//pump liquid, pump co2, electric field on/off, take photo
+
+
   //------------ flying -----------------------
 
   Serial.println("Flying NOW  -  x=abort");                 //terminal output for abort back to test
