@@ -54,11 +54,13 @@ Files Required to make a complete program -
 #define one_sec   1000                       //one second = 1000 millis
 #define one_min   60*one_sec                 // one minute of time
 #define one_hour  60*one_min                 // one hour of time
+#define one_day   24*one_hour               //one day of time
 //
 //
-#define TimeEvent1_time     ((one_min * 60) / SpeedFactor)      //take a photo time
-#define Sensor1time         ((one_min * 15) / SpeedFactor)      //Time to make Sensor1 readings 
-#define Sensor2time         ((one_sec * 20)  / SpeedFactor) 
+#define TimeEvent1_time     ((one_min * 60) / SpeedFactor)      //pump liquid -> not correct right now
+#define TimeEvent2_time     ((one_min * 60) / SpeedFactor)      //pump CO2 -> not correct right now
+#define TimeEvent3_time     ((one_min * 60) / SpeedFactor)      //electric field off/on -> not correct right now
+#define TimeEvent4_time     ((one_min * 60) / SpeedFactor)      //time to take photo -> not correct right now
 //
   int sensor1count = 0;     //counter of times the sensor has been accessed
   int sensor2count = 0;     //counter of times the sensor has been accessed
@@ -118,6 +120,9 @@ void Flying() {
   //***********************************************************************
   //***********************************************************************
   //
+
+ delay(one_day / SpeedFactor ); //24 hour wait before project
+
   while (1) {
     //
     //----------- Test for terminal abort command (x) from flying ----------------------
@@ -135,7 +140,7 @@ void Flying() {
     //  this test if TimeEvent1 time has come
     //  See above for TimeEvent1_time settings between this event
     //
-    if ((millis() - TimeEvent1) > TimeEvent1_time) {
+    if ((millis() - TimeEvent1) > TimeEvent1_time) {//Liquid Pump Time Event
       TimeEvent1 = millis();                    //yes is time now reset TimeEvent1
           //  Take a photo using the serial c329 camera and place file name in Queue
       if (State == 0){      //which state ?             
@@ -162,6 +167,37 @@ void Flying() {
     }                                               //end of TimeEvent1_time
     //------------------------------------------------------------------
     //
+    //*********** Timed Event 1 test ***************************************
+//
+    //  this test if TimeEvent2 time has come
+    //  See above for TimeEvent2_time settings between this event
+    //
+    if ((millis() - TimeEvent2) > TimeEvent2_time) {//C02 Pump Time Event
+      TimeEvent2 = millis();                    //yes is time now reset TimeEvent2
+          //  Take a photo using the serial c329 camera and place file name in Queue
+      if (State == 0){      //which state ?             
+          cmd_takeSphoto();            //Take serial photo and send it
+      }
+          //  Take a photo using the SPI c329 camera and place file name in Queue
+          //  Hardware Note: to use the Spi camera - a jumper must be connected from IO0
+          //  the the hold pin on J6.......
+      if (State == 1){
+          cmd_takeSpiphoto();         //Take SPI photo and send it
+      }
+          //  no camera - Send a 30k of buffer datta in place of a photo to the output Queue
+      if (State == 2){
+          nophoto30K();               //Use photo buffer for data
+      }
+          //  no camera - send just text appended with data to the output Queue
+      if (State == 3){
+          nophotophoto();               //photo event with no photo just to transfer data
+      }
+      State++;                          //go to the next state
+      if (State == 4){                  //reset the state back to 0
+        State = 0;                      //state to 0
+      }
+    }                                               //end of TimeEvent2_time
+    //------------------------------------------------------------------
 //*******************************************************************************
 //*********** One second counter timer will trigger every second ****************
 //*******************************************************************************
