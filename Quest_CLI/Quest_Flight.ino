@@ -39,6 +39,7 @@ Files Required to make a complete program -
 
 #include "Quest_Flight.h"
 #include "Quest_CLI.h"
+#include "X9C103S.h "
 
 //////////////////////////////////////////////////////////////////////////
 //    This defines the timers used to control flight operations
@@ -65,6 +66,7 @@ Files Required to make a complete program -
   int sensor1count = 0;     //counter of times the sensor has been accessed
   int sensor2count = 0;     //counter of times the sensor has been accessed
   int State =   0;          //FOR TESTING ONLY WILL SWITCH FROM SPI CAMERA TO SERIAL CAMERA EVERY HOUR
+  int potLvl = 0;
 //
 ///////////////////////////////////////////////////////////////////////////
 /**
@@ -79,6 +81,10 @@ void Flying() {
   Serial.println("\n\rRun flight program\n\r");
   //
   uint32_t TimeEvent1 = millis();               //set TimeEvent1 to effective 0
+  uint32_t TimeEvent2 = millis();               //set TimeEvent1 to effective 0
+  uint32_t TimeEvent3 = millis();               //set TimeEvent1 to effective 0
+  uint32_t TimeEvent4 = millis();               //set TimeEvent1 to effective 0
+
   uint32_t Sensor1Timer = millis();             //clear sensor1Timer to effective 0
   uint32_t Sensor2Timer = millis();             //clear sensor1Timer to effective 0
   uint32_t Sensor2Deadmillis = millis();        //clear mills for difference
@@ -95,6 +101,8 @@ void Flying() {
   //******************************************************************
 
 //pump liquid, pump co2, electric field on/off, take photo
+  X9C103S pot1(6, 7, 8) //X9C103S digital potentiometer connected with inc pin to pin 6 ud pin to pin 7 and cs pin to pin 8. Change pin numbers as nessary.
+  pot1.initializePot()
 
 
   //------------ flying -----------------------
@@ -140,7 +148,7 @@ void Flying() {
     //  this test if TimeEvent1 time has come
     //  See above for TimeEvent1_time settings between this event
     //
-    if ((millis() - TimeEvent1) > TimeEvent1_time) {//Liquid Pump Time Event
+    if ((millis() - TimeEvent1) > TimeEvent1_time) { // camera event
       TimeEvent1 = millis();                    //yes is time now reset TimeEvent1
           //  Take a photo using the serial c329 camera and place file name in Queue
       if (State == 0){      //which state ?             
@@ -174,30 +182,21 @@ void Flying() {
     //
     if ((millis() - TimeEvent2) > TimeEvent2_time) {//C02 Pump Time Event
       TimeEvent2 = millis();                    //yes is time now reset TimeEvent2
-          //  Take a photo using the serial c329 camera and place file name in Queue
-      if (State == 0){      //which state ?             
-          cmd_takeSphoto();            //Take serial photo and send it
-      }
-          //  Take a photo using the SPI c329 camera and place file name in Queue
-          //  Hardware Note: to use the Spi camera - a jumper must be connected from IO0
-          //  the the hold pin on J6.......
-      if (State == 1){
-          cmd_takeSpiphoto();         //Take SPI photo and send it
-      }
-          //  no camera - Send a 30k of buffer datta in place of a photo to the output Queue
-      if (State == 2){
-          nophoto30K();               //Use photo buffer for data
-      }
-          //  no camera - send just text appended with data to the output Queue
-      if (State == 3){
-          nophotophoto();               //photo event with no photo just to transfer data
-      }
-      State++;                          //go to the next state
-      if (State == 4){                  //reset the state back to 0
-        State = 0;                      //state to 0
-      }
+      
     }                                               //end of TimeEvent2_time
     //------------------------------------------------------------------
+    if ((millis() - TimeEvent3) > TimeEvent3_time) {//Liquid Pump Time Event
+      TimeEvent3 = millis();                    //yes is time now reset TimeEvent1
+      
+    }
+
+    if ((millis() - TimeEvent4) > TimeEvent4_time) {//potentiometer event
+      TimeEvent4 = millis();                    //yes is time now reset TimeEvent1
+      potlvl += 25 // how much the resistance is incremented 
+      pot1.setResistance(potlvl); //increminte resistance
+          
+    }
+
 //*******************************************************************************
 //*********** One second counter timer will trigger every second ****************
 //*******************************************************************************
