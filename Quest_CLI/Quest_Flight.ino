@@ -100,9 +100,9 @@ void Flying() {
   //
   //******************************************************************
 
-//pump liquid, pump co2, electric field on/off, take photo
-  X9C103S pot1(6, 7, 8) //X9C103S digital potentiometer connected with inc pin to pin 6 ud pin to pin 7 and cs pin to pin 8. Change pin numbers as nessary.
-  pot1.initializePot()
+  //pump liquid, pump co2, electric field on/off, take photo
+  X9C103S pot1(6, 7, 8); //X9C103S digital potentiometer connected with inc pin to pin 6 ud pin to pin 7 and cs pin to pin 8. Change pin numbers as nessary.
+  pot1.initializePot();
 
 
   //------------ flying -----------------------
@@ -141,7 +141,7 @@ void Flying() {
         return  ;                     //return back to poeration sellection
       }                               //end check
     }                                 //end abort check
-//------------------------------------------------------------------
+  //------------------------------------------------------------------
 //
 //*********** Timed Event 1 test ***************************************
 //
@@ -192,8 +192,8 @@ void Flying() {
 
     if ((millis() - TimeEvent4) > TimeEvent4_time) {//potentiometer event
       TimeEvent4 = millis();                    //yes is time now reset TimeEvent1
-      potlvl += 25 // how much the resistance is incremented 
-      pot1.setResistance(potlvl); //increminte resistance
+      potLvl += 25; // how much the resistance is incremented 
+      pot1.setResistance(potLvl); //increminte resistance
           
     }
 
@@ -244,16 +244,16 @@ void Flying() {
 //*********** Read Sensor1 Event read and add to text buffer************
 //**********************************************************************
     //
-    if ((millis() - Sensor1Timer) > Sensor1time) {    //Is it time to read?
-      Sensor1Timer = millis();                        //Yes, lets read the sensor1
-      sensor1count++;
-      int value1 = sensor1count;              //sensor count number up from zero
-      int value2 = 55000;                     //SIMULATED SENSOR VALUE,need to calculate real value
-      int value3 = 14;                        //SIMULATED SENSOR VALUE,need to calculate real value
-      //
-      add2text(value1, value2, value3);       //add the values to the text buffer
-      //    
-    }     // End of Sensor1 time event
+    // if ((millis() - Sensor1Timer) > Sensor1time) {    //Is it time to read?
+    //   Sensor1Timer = millis();                        //Yes, lets read the sensor1
+    //   sensor1count++;
+    //   int value1 = sensor1count;              //sensor count number up from zero
+    //   int value2 = 55000;                     //SIMULATED SENSOR VALUE,need to calculate real value
+    //   int value3 = 14;                        //SIMULATED SENSOR VALUE,need to calculate real value
+    //   //
+    //   add2text(value1, value2, value3);       //add the values to the text buffer
+    //   //    
+    // }     // End of Sensor1 time event
     //
 //**********************************************************************
 //*********** Read Sensor2 Event read and add to text buffer************
@@ -262,22 +262,22 @@ void Flying() {
     //  If it is event driven then remove the Sensor2Timer evvvvvend 
     //  here to get the  data for the event 
     //
-    if ((millis() - Sensor2Timer) > Sensor2time) {    //Is it time to read?
-      Sensor2Timer = millis();                        //Yes, lets read the sensor1
-      sensor2count++;
-      //
-      //  Here to calculate and store data
-      //
-      int Deadtime = millis()-Sensor2Deadmillis;      //time in millis sence last visit
-      Sensor2Deadmillis = millis();                   //set millis this visit
-      //
-      //**** now get ampli and SiPM *****
-      int ampli = 555;              //SIMULATED
-      int SiPM  = 888;              //SIMULATED
-      //***** end simulated *************
-      //
-      dataappend(sensor2count, ampli, SiPM, Deadtime);
-    }     // End of Sensor2Timer          
+  //   if ((millis() - Sensor2Timer) > Sensor2time) {    //Is it time to read?
+  //     Sensor2Timer = millis();                        //Yes, lets read the sensor1
+  //     sensor2count++;
+  //     //
+  //     //  Here to calculate and store data
+  //     //
+  //     int Deadtime = millis()-Sensor2Deadmillis;      //time in millis sence last visit
+  //     Sensor2Deadmillis = millis();                   //set millis this visit
+  //     //
+  //     //**** now get ampli and SiPM *****
+  //     int ampli = 555;              //SIMULATED
+  //     int SiPM  = 888;              //SIMULATED
+  //     //***** end simulated *************
+  //     //
+  //     dataappend(sensor2count, ampli, SiPM, Deadtime);
+  //   }     // End of Sensor2Timer          
   }       // End of while 
 }         //End nof Flighting
 //
