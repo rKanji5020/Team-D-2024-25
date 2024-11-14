@@ -69,7 +69,6 @@ const char source_file[] = __FILE__;
 #include "Quest_command.h"
 #include "Quest_CLI.h"
 #include "Quest_Flight.h"
-#include "X9C103S.h"
 //
 //-----------------------------------------------
 //

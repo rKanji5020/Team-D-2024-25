@@ -1,8 +1,7 @@
 /*
-/test12345u575757
 ****************************************************************************************
 ****************************************************************************************
-20231121
+
 Files Required to make a complete program - 
   CLI_V1.0, Quest_CLI.h, Quest_Flight.h, Quest_flight.cpp
       Important Functions and their use:
@@ -39,7 +38,6 @@ Files Required to make a complete program -
 
 #include "Quest_Flight.h"
 #include "Quest_CLI.h"
-#include "X9C103S.h "
 
 //////////////////////////////////////////////////////////////////////////
 //    This defines the timers used to control flight operations
@@ -58,10 +56,10 @@ Files Required to make a complete program -
 #define one_day   24*one_hour               //one day of time
 //
 //
-#define TimeEvent1_time     ((one_min * 60) / SpeedFactor)      //pump liquid -> not correct right now
+#define TimeEvent1_time     ((one_min * 60) / SpeedFactor)      //take picture -> not correct right now
 #define TimeEvent2_time     ((one_min * 60) / SpeedFactor)      //pump CO2 -> not correct right now
-#define TimeEvent3_time     ((one_min * 60) / SpeedFactor)      //electric field off/on -> not correct right now
-#define TimeEvent4_time     ((one_min * 60) / SpeedFactor)      //time to take photo -> not correct right now
+#define TimeEvent3_time     ((one_min * 60) / SpeedFactor)      //pump liquid -> not correct right now
+#define TimeEvent4_time     ((one_min * 60) / SpeedFactor)      //electric field/potentiometer -> not correct right now
 //
   int sensor1count = 0;     //counter of times the sensor has been accessed
   int sensor2count = 0;     //counter of times the sensor has been accessed
@@ -101,9 +99,6 @@ void Flying() {
   //******************************************************************
 
   //pump liquid, pump co2, electric field on/off, take photo
-  X9C103S pot1(6, 7, 8); //X9C103S digital potentiometer connected with inc pin to pin 6 ud pin to pin 7 and cs pin to pin 8. Change pin numbers as nessary.
-  pot1.initializePot();
-
 
   //------------ flying -----------------------
 
@@ -186,14 +181,12 @@ void Flying() {
     }                                               //end of TimeEvent2_time
     //------------------------------------------------------------------
     if ((millis() - TimeEvent3) > TimeEvent3_time) {//Liquid Pump Time Event
-      TimeEvent3 = millis();                    //yes is time now reset TimeEvent1
+      TimeEvent3 = millis();                    //yes is time now reset TimeEvent3
       
     }
 
-    if ((millis() - TimeEvent4) > TimeEvent4_time) {//potentiometer event
-      TimeEvent4 = millis();                    //yes is time now reset TimeEvent1
-      potLvl += 25; // how much the resistance is incremented 
-      pot1.setResistance(potLvl); //increminte resistance
+    if ((millis() - TimeEvent4) > TimeEvent4_time) {//electric field/potentiometer event
+      TimeEvent4 = millis();                    //yes is time now reset TimeEvent4
           
     }
 
