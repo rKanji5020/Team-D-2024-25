@@ -143,7 +143,7 @@ void Flying() {
     //  this test if TimeEvent1 time has come
     //  See above for TimeEvent1_time settings between this event
     //
-    if ((millis() - TimeEvent1) > TimeEvent1_time) { // camera event
+    if ((millis() - TimeEvent1) > TimeEvent1_time) { // camera event might remove
       TimeEvent1 = millis();                    //yes is time now reset TimeEvent1
           //  Take a photo using the serial c329 camera and place file name in Queue
       if (State == 0){      //which state ?             
@@ -175,19 +175,29 @@ void Flying() {
     //  this test if TimeEvent2 time has come
     //  See above for TimeEvent2_time settings between this event
     //
-    if ((millis() - TimeEvent2) > TimeEvent2_time) {//C02 Pump Time Event
+    if ((millis() - TimeEvent2) > TimeEvent2_time) {//C02 Pump and camera Time Event
       TimeEvent2 = millis();                    //yes is time now reset TimeEvent2
-      
+      digitalWrite(0, HIGH); // replace with CO2 pin
+      for (int i = 0; i < 20; i++) { //num of photos taken
+        cmd_takeSphoto(); 
+        delay(12000); // time taken to pump CO2
+      }
+      digitalWrite(0, LOW);
     }                                               //end of TimeEvent2_time
     //------------------------------------------------------------------
     if ((millis() - TimeEvent3) > TimeEvent3_time) {//Liquid Pump Time Event
       TimeEvent3 = millis();                    //yes is time now reset TimeEvent3
-      
+      digitalWrite(1, HIGH); // replace with pump pin
+      delay(1000); // time taken to pump
+      analogWrite(A0, 4750);
     }
 
-    if ((millis() - TimeEvent4) > TimeEvent4_time) {//electric field/potentiometer event
+    if ((millis() - TimeEvent4) > TimeEvent4_time) {//liquid suck event
       TimeEvent4 = millis();                    //yes is time now reset TimeEvent4
-          
+      analogWrite(A0, 0);
+      delay(1000);
+      digitalWrite(2, HIGH); //reverse pump pin
+      delay(1000); //time taken to suck
     }
 
 //*******************************************************************************
