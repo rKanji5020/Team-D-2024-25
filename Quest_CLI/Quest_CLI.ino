@@ -2984,7 +2984,7 @@ int takeSPI() {
   }
   //
   //  if (!camera.initialize(Quest_CameraC329::BAUD14400, Quest_CameraC329::CT_JPEG, Quest_CameraC329::PR_160x120, Quest_CameraC329::JR_640x480))
-  if (!cameraSPI.initializeSPI(QuestCameraC329SPI::BAUD0, QuestCameraC329SPI::CT_JPEG, QuestCameraC329SPI::PR_160x120, QuestCameraC329SPI::JR_320x240)) //QuestCameraC329SPI::BAUD921600
+  if (!cameraSPI.initializeSPI(QuestCameraC329SPI::BAUD115200, QuestCameraC329SPI::CT_JPEG, QuestCameraC329SPI::PR_640x480, QuestCameraC329SPI::JR_352x288)) //QuestCameraC329SPI::BAUD921600
   {
     Serial.println("SPI Initialize failed");
     return 4;
@@ -2994,7 +2994,7 @@ int takeSPI() {
   }
   //
   //  if (!camera.setQuality(Quest_CameraC329::QL_BEST))    //Set Quality, amount of compression
-  if (!cameraSPI.setQualitySPI(QuestCameraC329SPI::QL_BEST))  //hai
+  if (!cameraSPI.setQualitySPI(QuestCameraC329SPI::QL_BETTER))  //hai
   {
     Serial.println("SPI Set quality failed");
     return 5;
