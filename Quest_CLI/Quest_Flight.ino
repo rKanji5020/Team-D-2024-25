@@ -147,27 +147,49 @@ void Flying() {
     if ((millis() - TimeEvent1) > TimeEvent1_time) {  // camera event might remove
       TimeEvent1 = millis();                          //yes is time now reset TimeEvent1
                                                       //  Take a photo using the serial c329 camera and place file name in Queue
-      if (State == 0) {                               //which state ?
-        cmd_takeSphoto();                             //Take serial photo and send it
+
+      //pump fluid
+
+      digitalWrite(0, HIGH);                          // replace with fluid pin
+      delay(1000);                                    // amnt of timme to pump
+      digitalWrite(0, LOW);
+      
+      //activate electric field
+
+      analogWrite(A0, 4750); //increment voltage
+
+      // take photo
+
+      cmd_takeSpiphoto(); 
+
+      //pump co2
+
+      digitalWrite(0, HIGH);                          // replace with CO2 pin
+      delay(1000);                                    // amnt of timme to pump
+      digitalWrite(0, LOW);
+
+      //loop 40 iteration
+        //take photo
+        // wait 3 sec
+
+        //suck fluid at 20
+          //pump fluid
+          //pump co2
+      
+      for (int i = 0; i < 40; i++) {
+        cmd_takeSpiphoto();
+        delay(3000);
+        if (i % 20) {
+          digitalWrite(0, HIGH);                          // reverse pump pin replace with fluid pin
+          delay(1000);                                    // amnt of timme to pump
+          digitalWrite(0, LOW);                           // pump replace with fluid pin
+          digitalWrite(0, HIGH);                          // replace with cO2 pin
+        }
       }
-      //  Take a photo using the SPI c329 camera and place file name in Queue
-      //  Hardware Note: to use the Spi camera - a jumper must be connected from IO0
-      //  the the hold pin on J6.......
-      if (State == 1) {
-        cmd_takeSpiphoto();  //Take SPI photo and send it
-      }
-      //  no camera - Send a 30k of buffer datta in place of a photo to the output Queue
-      if (State == 2) {
-        nophoto30K();  //Use photo buffer for data
-      }
-      //  no camera - send just text appended with data to the output Queue
-      if (State == 3) {
-        nophotophoto();  //photo event with no photo just to transfer data
-      }
-      State++;           //go to the next state
-      if (State == 4) {  //reset the state back to 0
-        State = 0;       //state to 0
-      }
+
+      // deactivate electric feild
+      analogWrite(A0, 0);
+      
     }  //end of TimeEvent1_time
     //------------------------------------------------------------------
     //
