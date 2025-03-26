@@ -98,14 +98,7 @@ const int ANA3 = A3;              //analog 3 input
 //
 //-------------------------------end of general setup pins
 
-#define IO7 (13)              // Input/Output to payload plus 
-#define IO6 (12)              // Input/Output to payload plus 
-#define IO5 (11)              // Input/Output to payload plus
-#define IO4 (10)              // Input/Output to payload plus
-#define IO3 (9)               // Input/Output to payload plus
-#define IO2 (4)               // Input/Output to payload plus
-#define IO1 (3)               // Input/Output to payload plus
-#define IO0 (A6)              // Input/Output to payload plus 
+ 
 //
 //-------Host interface communication 9600 baud ----------
 
@@ -115,6 +108,19 @@ const byte EIC_IRQn = 0;
 #define softuartrate (104)            //software loop  
 #define softuartinpin (0)             //(0) //
 #define softuartoutpin (1)            //(1) //
+
+  //----------------- Hardware definitions
+#define IO7 (13)              // Input/Output to payload plus
+#define IO6 (12)              // Input/Output to paylsoad plus
+#define IO5 (11)              // Input/Output to payload plus
+#define IO4 (10)              // Input/Output to payload plus
+#define IO3 (9)              // Input/Output to payload plus
+#define IO2 (4)              // Input/Output to payload plus
+#define IO1 (3)              // Input/Output to payload plus
+#define IO0 (A6)              // Input/Output to payload plus
+
+
+
 
 SdFat SD;
 File32 file;
@@ -634,6 +640,8 @@ void setup() {
   //    while(!Serial);       //wait for serial to be ready
   //
   delay(4000);        // Wait for usb if used and attached
+
+
   //
   //
   Serial.println("\r\n\n----------------------------------------------------------");
@@ -642,6 +650,7 @@ void setup() {
   Serial.println("add to change this is your flight playground to learn the S3_40 system\n");
   //
   //------------ set digital IO to output and high ------------
+
   pinMode(IO7, OUTPUT);      //
   digitalWrite(IO7, HIGH);   //
   pinMode(IO6, OUTPUT);      //
@@ -660,12 +669,19 @@ void setup() {
   digitalWrite(IO0, HIGH);   //
   //
   PulseInit();    //????????????????????????????????????????????????????????????
+
+
+
   //
   //---  Default pin defination and direction
   //
   pinMode(LEDpin, OUTPUT);                    //IO7 and RED LED on PCB
   pinMode(B_MicroSD_CS, OUTPUT);              //MicroSD enable pin
   digitalWrite(B_MicroSD_CS, HIGH);           //MicroSD pin Disable
+
+
+
+
   pinMode(Cam_power, OUTPUT);                 //Serial and SPI camera power pin
   digitalWrite(Cam_power, Cam_power_OFF);     //Serial and SPI camera power off
 
@@ -677,15 +693,17 @@ void setup() {
   //SPI_cam_Power = 7;                            //SPI camera power pin
   const int SPIcamON = 1;                         //Power on the SPI camera    Removed for test of quest init 0503
   const int SPIcamOFF = 0;                        //Power off the SPI camera
+
   pinMode( SPIcamHold, INPUT);                    //SPI camera Hold pin
-
-
 
   pinMode(softuartoutpin, OUTPUT);            //for Host interface
   digitalWrite(softuartoutpin, HIGH);         //for Host interface
   DotStarInit();                              //set up DotStar
   DotStarOff();                               //Set to Off
   Serial.println("DotStar OK");
+
+
+
   //
   //---Set RTC quartz oscillator for proper load capacitance
   Wire.begin();
@@ -1756,7 +1774,7 @@ int cmd_sphoto() {                                    //take C329 Serial Photo a
     return 0;                                           //return with 0 is error
   }
   //  Serial.println("Sync OK");                          //testing
-  if (!camera.initialize(Quest_CameraC329::BAUD14400, Quest_CameraC329::CT_JPEG, Quest_CameraC329::PR_160x120, Quest_CameraC329::JR_640x480)) //write initJR_320x240
+  if (!camera.initialize(Quest_CameraC329::BAUD14400, Quest_CameraC329::CT_JPEG, Quest_CameraC329::PR_160x120, Quest_CameraC329::JR_176x144)) //write initJR_320x240
     //
   {
     Serial.println("Initialize failed");                //did not initialize, something wrong
@@ -2104,17 +2122,9 @@ int RTCarray[] = {1, 2, 3, 4, 5, 6}; //real time clock array storage locations R
 //
 
 
-/*
-  //----------------- Hardware definitions
-  #define IO7 (13)              // Input/Output to payload plus
-  #define IO6 (12)              // Input/Output to payload plus
-  #define IO5 (11)              // Input/Output to payload plus
-  #define IO4 (10)              // Input/Output to payload plus
-  #define IO3 (9)              // Input/Output to payload plus
-  #define IO2 (4)              // Input/Output to payload plus
-  #define IO1 (3)              // Input/Output to payload plus
-  #define IO0 (A6)              // Input/Output to payload plus
-*/
+
+
+
 //---- Serial input from Master controller
 
 //#define Sel0 (A4)           //serial selector i/o select
@@ -2984,7 +2994,7 @@ int takeSPI() {
   }
   //
   //  if (!camera.initialize(Quest_CameraC329::BAUD14400, Quest_CameraC329::CT_JPEG, Quest_CameraC329::PR_160x120, Quest_CameraC329::JR_640x480))
-  if (!cameraSPI.initializeSPI(QuestCameraC329SPI::BAUD115200, QuestCameraC329SPI::CT_JPEG, QuestCameraC329SPI::PR_640x480, QuestCameraC329SPI::JR_352x288)) //QuestCameraC329SPI::BAUD921600
+  if (!cameraSPI.initializeSPI(QuestCameraC329SPI::BAUD921600, QuestCameraC329SPI::CT_JPEG, QuestCameraC329SPI::PR_640x480, QuestCameraC329SPI::JR_352x288)) //QuestCameraC329SPI::BAUD921600
   {
     Serial.println("SPI Initialize failed");
     return 4;
