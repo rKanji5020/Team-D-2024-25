@@ -7,9 +7,9 @@
 #define IO1 (3)              // Input/Output to payload plus
 #define IO0 (A6)              // Input/Output to payload plus
 
-#define TRUESTATE ((uint8_t) 1)
-#define EVENT_FLAGADRESS (FRAM_ADRESS)
-#define PUMP_FLAG_ADRESS_SIZE 8
+//#define TRUESTATE ((uint8_t) 1)
+//#define EVENT_FLAGADRESS (FRAM_ADRESS)
+//#define PUMP_FLAG_ADRESS_SIZE 8
 
 /*
 ****************************************************************************************
@@ -69,10 +69,10 @@ Files Required to make a complete program -
 #define one_day 24 * one_hour  //one day of time
 //
 //
-#define TimeEvent1_time ((one_day * 2) / SpeedFactor)  //take picture -> not correct right now
-#define TimeEvent2_time ((one_min * 60) / SpeedFactor)  //pump CO2 -> not correct right now
-#define TimeEvent3_time ((one_min * 60) / SpeedFactor)  //pump liquid -> not correct right now
-#define TimeEvent4_time ((one_min * 60) / SpeedFactor)  //electric field/potentiometer -> not correct right now
+#define TimeEvent1_time ((one_day * 2) / SpeedFactor)  //main time event
+#define TimeEvent2_time ((one_sec * 20))  // time to pump fluid
+#define TimeEvent3_time ((one_sec * 20))  // time to pump CO2 FIND THISS
+#define TimeEvent4_time ((one_sec * 20))  // time to suck fluid FIND THIS
                                                         //
 int sensor1count = 0;                                   //counter of times the sensor has been accessed
 int sensor2count = 0;                                   //counter of times the sensor has been accessed
@@ -140,6 +140,14 @@ void Flying() {
                                              //
 
   analogWrite(A0, 0);
+  digitalWrite(IO1, LOW);
+  digitalWrite(IO2, LOW);
+  digitalWrite(IO3, LOW);
+  digitalWrite(IO4, LOW);
+  digitalWrite(IO5, LOW);
+  digitalWrite(IO6, LOW);
+  digitalWrite(IO7, LOW);  
+
   delay(one_day / SpeedFactor);  //24 hour wait before project
   
 
@@ -160,29 +168,22 @@ void Flying() {
     //  this test if TimeEvent1 time has come
     //  See above for TimeEvent1_time settings between this event
     //
-    if ((millis() - TimeEvent1) > TimeEvent1_time) {  //only event
+    if ((millis() - TimeEvent1) > TimeEvent1_time) {  
       TimeEvent1 = millis();                          //yes is time now reset TimeEvent1
                                                       //  Take a photo using the serial c329 camera and place file name in Queue
       Serial.println("time event 1 started");
       fieldInc++;
-      if (fieldInc == 1) {
-        analogWrite(A0, 20339);
-      } else if (fieldInc == 2) {
-        analogWrite(A0, 19831);
-      } else if (fieldInc == 3) {
-        analogWrite(A0, 19267);
-      } else if (fieldInc == 4) {
-        analogWrite(A0, 18756);
-      } else if (fieldInc == 5) {
-        analogWrite(A0, 18305);
-      } else if (fieldInc == 6) {
-        analogWrite(A0, 17882);
-      } else if (fieldInc == 7) {
-        analogWrite(A0, 17439);
-      } else if (fieldInc == 8) {
-        analogWrite(A0, 16781);
-      } 
+      
+      if      (fieldInc == 1) analogWrite(A0, 20339);
+      else if (fieldInc == 2) analogWrite(A0, 19831);
+      else if (fieldInc == 3) analogWrite(A0, 19267);
+      else if (fieldInc == 4) analogWrite(A0, 18756);
+      else if (fieldInc == 5) analogWrite(A0, 18305);
+      else if (fieldInc == 6) analogWrite(A0, 17882);
+      else if (fieldInc == 7) analogWrite(A0, 17439);
+      else if (fieldInc == 8) analogWrite(A0, 16781); 
       //pump fluid
+
       digitalWrite(IO1, LOW);
       digitalWrite(IO2, LOW);
       digitalWrite(IO3, LOW);
@@ -193,10 +194,16 @@ void Flying() {
 
       Serial.println("first liquid pump");
 
-      delay(20000);                        // amnt of timme to pump
-
-      digitalWrite(IO6, LOW);
-      digitalWrite(IO7, LOW);    //stop pumping fluid
+      TimeEvent2 += millis();
+      
+      while (1) { 
+        if((millis() - TimeEvent2) > TimeEvent2_time ) { //amnt of time to pump
+          TimeEvent2 = 0;
+          digitalWrite(IO6, LOW);
+          digitalWrite(IO7, LOW);    //stop pumping fluid
+          break;
+        }
+      }
       
       //activate electric field
 
@@ -207,23 +214,24 @@ void Flying() {
       Serial.println("first photo");
 
       digitalWrite(IO5, HIGH);
-      
-      delay(1000);  
+      //delay(1000);  TEST TO SEE IF THIS NEEDS A DELAYY
       cmd_takeSpiphoto();
-      delay(500);
       digitalWrite(IO5, LOW);
-
-      //pump co2 -- NOT PUMPING??
 
       Serial.println("pump CO2");
 
-
       digitalWrite(IO1, HIGH);                          // replace with CO2 pin
       digitalWrite(IO4, HIGH);                          // replace with CO2 pin
-      delay(10000);                                    // amnt of timme to pump
-      digitalWrite(IO0, LOW);                          // replace with CO2 pin
-      digitalWrite(IO1, LOW);                          // replace with CO2 pin
 
+      TimeEvent3 += millis();
+      while (1) { 
+        if((millis() - TimeEvent3) > TimeEvent3_time ) { //FIND TIME TO PUMP CO2;
+          TimeEvent3 = 0;
+          digitalWrite(IO1, LOW);
+          digitalWrite(IO4, LOW);    //stop pumping fluid
+          break;
+        }
+      }
 
       //loop 40 iteration
         //take photo
@@ -235,42 +243,44 @@ void Flying() {
       
       for (int i = 1; i < 40; i++) {
         digitalWrite(IO5, HIGH);
-        delay(100);
         Serial.println("take photo");
         cmd_takeSpiphoto();
-        //delay(4000);
         digitalWrite(IO5, LOW);
 
         
 
         if (i % 20 == 0) {
           Serial.println("suck fluid");
+
           digitalWrite(IO2, HIGH);
           digitalWrite(IO3, HIGH);
           digitalWrite(IO6, LOW);
           digitalWrite(IO7, LOW);  //suck fluid from chamber
 
-          delay(10000);                                    // amnt of timme to suck
+          TimeEvent4 += millis();
+          while (1) { 
+            if((millis() - TimeEvent4) > TimeEvent4_time ) { //FIND TIME TO SUCJ FLUID;
+              TimeEvent3 = 0;
+              digitalWrite(IO2, LOW);
+              digitalWrite(IO3, LOW); //off
+              break;
+            }
+          }
 
-          digitalWrite(IO2, LOW);
-          digitalWrite(IO3, LOW);
-          digitalWrite(IO6, LOW);
-          digitalWrite(IO7, LOW);  //off 
-
-          delay(5000);
+          //delay(5000); need a delay ?
 
           Serial.println("pump fluid");
-          digitalWrite(IO2, LOW);
-          digitalWrite(IO3, LOW);
           digitalWrite(IO6, HIGH);
           digitalWrite(IO7, HIGH);  //pump fluid into chamber
 
-          delay(10000);
-
-          digitalWrite(IO2, LOW);
-          digitalWrite(IO3, LOW);
-          digitalWrite(IO6, LOW);
-          digitalWrite(IO7, LOW);  //off 
+          while (1) { 
+            if((millis() - TimeEvent2) > TimeEvent2_time ) { //amnt of time to pump
+              TimeEvent2 = 0;
+              digitalWrite(IO6, LOW);
+              digitalWrite(IO7, LOW);    //stop pumping fluid
+              break;
+            }
+          } 
 
         }
       }
@@ -286,24 +296,24 @@ void Flying() {
     //  this test if TimeEvent2 time has come
     //  See above for TimeEvent2_time settings between this event
     //
-    if ((millis() - TimeEvent2) > TimeEvent2_time ) {  //FLUID PUMP TIME
+    // if ((millis() - TimeEvent2) > TimeEvent2_time ) {  //FLUID PUMP TIME
 
-      if(readbyteFromfram(EVENT_FLAGADDRESS) != ON_TRUE){
+    //   //if(readbyteFromfram(EVENT_FLAGADRESS) != ON_TRUE){
 
-      }
-      Serial.print("time event 2 started");
-      TimeEvent2 = millis();                          //yes is time now reset TimeEvent2
+    //   //}
+    //   Serial.print("time event 2 started");
+    //   TimeEvent2 = millis();                          //yes is time now reset TimeEvent2
 
-      digitalWrite(IO0, LOW);                          // replace with CO2 pin
-      digitalWrite(IO1, LOW);                          // replace with CO2 pin
-      writebytefram(ON_TRUE, ADRESS);
-      for (int i = 0; i < 20; i++) {                  //num of photos taken
-        cmd_takeSphoto();
-        delay(12000);  // time taken to pump CO2
-      }
-      digitalWrite(IO0, HIGH);                          // replace with CO2 pin
-      digitalWrite(IO1, HIGH);  
-    }  //end of TimeEvent2_time
+    //   digitalWrite(IO0, LOW);                          // replace with CO2 pin
+    //   digitalWrite(IO1, LOW);                          // replace with CO2 pin
+    //   //writebytefram(ON_TRUE, ADRESS);
+    //   for (int i = 0; i < 20; i++) {                  //num of photos taken
+    //     cmd_takeSphoto();
+    //     delay(12000);  // time taken to pump CO2
+    //   }
+    //   digitalWrite(IO0, HIGH);                          // replace with CO2 pin
+    //   digitalWrite(IO1, HIGH);  
+    // }  //end of TimeEvent2_time
     //------------------------------------------------------------------
     // if ((millis() - TimeEvent3) > TimeEvent3_time) {  //Liquid Pump Time Event
     //   Serial.print("time event 3 started");
