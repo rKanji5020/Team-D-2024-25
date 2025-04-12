@@ -58,7 +58,7 @@ Files Required to make a complete program -
 //  Fast clock --- 1 hour = 5 min = 1/12 of an  hour
 //     one millie -- 1ms
 //
-#define SpeedFactor 150000  // = times faster
+#define SpeedFactor 1  // = times faster
 //
 //
 //////////////////////////////////////////////////////////////////////////
@@ -70,15 +70,15 @@ Files Required to make a complete program -
 //
 //
 #define TimeEvent1_time ((one_day * 2) / SpeedFactor)  //main time event
-#define TimeEvent2_time ((one_sec * 20))  // time to pump fluid
-#define TimeEvent3_time ((one_sec * 20))  // time to pump CO2 FIND THISS
+#define TimeEvent2_time ((one_sec * 18.5))  // time to pump fluid
+#define TimeEvent3_time ((one_sec * 2))  // time to pump CO2 FIND THISS
 #define TimeEvent4_time ((one_sec * 20))  // time to suck fluid FIND THIS
+#define TimeEvent5_time ((one_sec * 2))  // time between photo
                                                         //
 int sensor1count = 0;                                   //counter of times the sensor has been accessed
 int sensor2count = 0;                                   //counter of times the sensor has been accessed
 int State = 0;                                          //FOR TESTING ONLY WILL SWITCH FROM SPI CAMERA TO SERIAL CAMERA EVERY HOUR
 int fieldInc = 0;
-bool timeCheck;
 //
 ///////////////////////////////////////////////////////////////////////////
 /**
@@ -97,6 +97,8 @@ void Flying() {
   uint32_t TimeEvent2 = millis();  //set TimeEvent1 to effective 0
   uint32_t TimeEvent3 = millis();  //set TimeEvent1 to effective 0
   uint32_t TimeEvent4 = millis();  //set TimeEvent1 to effective 0
+  uint32_t TimeEvent5 = millis();  //set TimeEvent1 to effective 0
+
 
   uint32_t Sensor1Timer = millis();       //clear sensor1Timer to effective 0
   uint32_t Sensor2Timer = millis();       //clear sensor1Timer to effective 0
@@ -140,6 +142,7 @@ void Flying() {
                                              //
 
   analogWrite(A0, 0);
+
   digitalWrite(IO1, LOW);
   digitalWrite(IO2, LOW);
   digitalWrite(IO3, LOW);
@@ -173,7 +176,7 @@ void Flying() {
                                                       //  Take a photo using the serial c329 camera and place file name in Queue
       Serial.println("time event 1 started");
       fieldInc++;
-      
+      Serial.println("analog increment");
       if      (fieldInc == 1) analogWrite(A0, 20339);
       else if (fieldInc == 2) analogWrite(A0, 19831);
       else if (fieldInc == 3) analogWrite(A0, 19267);
@@ -194,15 +197,58 @@ void Flying() {
 
       Serial.println("first liquid pump");
 
-      TimeEvent2 += millis();
-      
+      TimeEvent2 = millis();
       while (1) { 
         if((millis() - TimeEvent2) > TimeEvent2_time ) { //amnt of time to pump
           TimeEvent2 = 0;
+          Serial.println("time event 2 hit");
           digitalWrite(IO6, LOW);
           digitalWrite(IO7, LOW);    //stop pumping fluid
           break;
         }
+        if ((millis() - one_secTimer) > one_sec) {  //one sec counter
+          one_secTimer = millis();                  //reset one second timer
+          DotStarYellow();                          //turn on Yellow DotStar to Blink for running
+          //
+          //****************** NO_NO_NO_NO_NO_NO_NO_NO_NO_NO_NO_ *************************
+          // DO NOT TOUCH THIS CODE IT IS NECESARY FOR PROPER MISSION CLOCK OPERATIONS
+          //    Mission clock timer
+          //    FRAM keep track of cunlitive power on time
+          //    and RTC with unix seconds
+          //------------------------------------------------------------------------------
+          DateTime now = rtc.now();        //get the time time,don't know how long away
+          currentunix = (now.unixtime());  //get current unix time
+          Serial.print(currentunix);
+          Serial.print(" ");                                                        //testing print unix clock
+          uint32_t framdeltaunix = (currentunix - readlongFromfram(PreviousUnix));  //get delta sec of unix time
+          uint32_t cumunix = readlongFromfram(CumUnix);                             //Get cumulative unix mission clock
+          writelongfram((cumunix + framdeltaunix), CumUnix);                        //add and Save cumulative unix time Mission
+          writelongfram(currentunix, PreviousUnix);                                 //reset PreviousUnix to current for next time
+                                                                                    //
+                                                                                    //********* END_NO_END_NO_END_NO_END_NO_END_NO_END_NO_ **************************
+          //
+          //  This part prints out every second
+          //
+          Serial.print(": Mission Clock = ");       //testing print mission clock
+          Serial.print(readlongFromfram(CumUnix));  //mission clock
+          Serial.print(" is ");                     //spacer
+          //
+          //------Output to the terminal  days hours min sec
+          //
+          getmissionclk();
+          Serial.print(xd);
+          Serial.print(" Days  ");
+          Serial.print(xh);
+          Serial.print(" Hours  ");
+          Serial.print(xm);
+          Serial.print(" Min  ");
+          Serial.print(xs);
+          Serial.println(" Sec");
+          //
+          //
+          DotStarOff();
+        } 
+
       }
       
       //activate electric field
@@ -223,14 +269,57 @@ void Flying() {
       digitalWrite(IO1, HIGH);                          // replace with CO2 pin
       digitalWrite(IO4, HIGH);                          // replace with CO2 pin
 
-      TimeEvent3 += millis();
+      TimeEvent3 = millis();
       while (1) { 
         if((millis() - TimeEvent3) > TimeEvent3_time ) { //FIND TIME TO PUMP CO2;
           TimeEvent3 = 0;
+          Serial.println("time event 3 hit");
           digitalWrite(IO1, LOW);
           digitalWrite(IO4, LOW);    //stop pumping fluid
           break;
         }
+        if ((millis() - one_secTimer) > one_sec) {  //one sec counter
+          one_secTimer = millis();                  //reset one second timer
+          DotStarYellow();                          //turn on Yellow DotStar to Blink for running
+          //
+          //****************** NO_NO_NO_NO_NO_NO_NO_NO_NO_NO_NO_ *************************
+          // DO NOT TOUCH THIS CODE IT IS NECESARY FOR PROPER MISSION CLOCK OPERATIONS
+          //    Mission clock timer
+          //    FRAM keep track of cunlitive power on time
+          //    and RTC with unix seconds
+          //------------------------------------------------------------------------------
+          DateTime now = rtc.now();        //get the time time,don't know how long away
+          currentunix = (now.unixtime());  //get current unix time
+          Serial.print(currentunix);
+          Serial.print(" ");                                                        //testing print unix clock
+          uint32_t framdeltaunix = (currentunix - readlongFromfram(PreviousUnix));  //get delta sec of unix time
+          uint32_t cumunix = readlongFromfram(CumUnix);                             //Get cumulative unix mission clock
+          writelongfram((cumunix + framdeltaunix), CumUnix);                        //add and Save cumulative unix time Mission
+          writelongfram(currentunix, PreviousUnix);                                 //reset PreviousUnix to current for next time
+                                                                                    //
+                                                                                    //********* END_NO_END_NO_END_NO_END_NO_END_NO_END_NO_ **************************
+          //
+          //  This part prints out every second
+          //
+          Serial.print(": Mission Clock = ");       //testing print mission clock
+          Serial.print(readlongFromfram(CumUnix));  //mission clock
+          Serial.print(" is ");                     //spacer
+          //
+          //------Output to the terminal  days hours min sec
+          //
+          getmissionclk();
+          Serial.print(xd);
+          Serial.print(" Days  ");
+          Serial.print(xh);
+          Serial.print(" Hours  ");
+          Serial.print(xm);
+          Serial.print(" Min  ");
+          Serial.print(xs);
+          Serial.println(" Sec");
+          //
+          //
+          DotStarOff();
+        } 
       }
 
       //loop 40 iteration
@@ -241,47 +330,139 @@ void Flying() {
           //pump fluid
           //pump co2
       
-      for (int i = 1; i < 40; i++) {
+      for (int i = 1; i < 20; i++) {
+        //sync is failing here
         digitalWrite(IO5, HIGH);
-        Serial.println("take photo");
+
+        delay(1000);
+
         cmd_takeSpiphoto();
         digitalWrite(IO5, LOW);
 
         
 
-        if (i % 20 == 0) {
-          Serial.println("suck fluid");
+        if (i % 10 == 10) {
+          Serial.println("suck fluid"); //SWITCH
 
           digitalWrite(IO2, HIGH);
           digitalWrite(IO3, HIGH);
           digitalWrite(IO6, LOW);
           digitalWrite(IO7, LOW);  //suck fluid from chamber
 
-          TimeEvent4 += millis();
+          TimeEvent4 = millis();
           while (1) { 
             if((millis() - TimeEvent4) > TimeEvent4_time ) { //FIND TIME TO SUCJ FLUID;
-              TimeEvent3 = 0;
+              
+              TimeEvent4 = 0;
               digitalWrite(IO2, LOW);
               digitalWrite(IO3, LOW); //off
+              Serial.println("done sucking fluid");
               break;
             }
+            if ((millis() - one_secTimer) > one_sec) {  //one sec counter
+              one_secTimer = millis();                  //reset one second timer
+              DotStarYellow();                          //turn on Yellow DotStar to Blink for running
+              //
+              //****************** NO_NO_NO_NO_NO_NO_NO_NO_NO_NO_NO_ *************************
+              // DO NOT TOUCH THIS CODE IT IS NECESARY FOR PROPER MISSION CLOCK OPERATIONS
+              //    Mission clock timer
+              //    FRAM keep track of cunlitive power on time
+              //    and RTC with unix seconds
+              //------------------------------------------------------------------------------
+              DateTime now = rtc.now();        //get the time time,don't know how long away
+              currentunix = (now.unixtime());  //get current unix time
+              Serial.print(currentunix);
+              Serial.print(" ");                                                        //testing print unix clock
+              uint32_t framdeltaunix = (currentunix - readlongFromfram(PreviousUnix));  //get delta sec of unix time
+              uint32_t cumunix = readlongFromfram(CumUnix);                             //Get cumulative unix mission clock
+              writelongfram((cumunix + framdeltaunix), CumUnix);                        //add and Save cumulative unix time Mission
+              writelongfram(currentunix, PreviousUnix);                                 //reset PreviousUnix to current for next time
+                                                                                        //
+                                                                                        //********* END_NO_END_NO_END_NO_END_NO_END_NO_END_NO_ **************************
+              //
+              //  This part prints out every second
+              //
+              Serial.print(": Mission Clock = ");       //testing print mission clock
+              Serial.print(readlongFromfram(CumUnix));  //mission clock
+              Serial.print(" is ");                     //spacer
+              //
+              //------Output to the terminal  days hours min sec
+              //
+              getmissionclk();
+              Serial.print(xd);
+              Serial.print(" Days  ");
+              Serial.print(xh);
+              Serial.print(" Hours  ");
+              Serial.print(xm);
+              Serial.print(" Min  ");
+              Serial.print(xs);
+              Serial.println(" Sec");
+              //
+              //
+              DotStarOff();
+            } 
           }
+
+          delay(1000);
 
           //delay(5000); need a delay ?
 
-          Serial.println("pump fluid");
+          Serial.println("pumping fluid");
           digitalWrite(IO6, HIGH);
           digitalWrite(IO7, HIGH);  //pump fluid into chamber
 
+          TimeEvent2 = millis();
           while (1) { 
             if((millis() - TimeEvent2) > TimeEvent2_time ) { //amnt of time to pump
               TimeEvent2 = 0;
               digitalWrite(IO6, LOW);
               digitalWrite(IO7, LOW);    //stop pumping fluid
+              Serial.println("done pumping");
               break;
             }
+            if ((millis() - one_secTimer) > one_sec) {  //one sec counter
+              one_secTimer = millis();                  //reset one second timer
+              DotStarYellow();                          //turn on Yellow DotStar to Blink for running
+              //
+              //****************** NO_NO_NO_NO_NO_NO_NO_NO_NO_NO_NO_ *************************
+              // DO NOT TOUCH THIS CODE IT IS NECESARY FOR PROPER MISSION CLOCK OPERATIONS
+              //    Mission clock timer
+              //    FRAM keep track of cunlitive power on time
+              //    and RTC with unix seconds
+              //------------------------------------------------------------------------------
+              DateTime now = rtc.now();        //get the time time,don't know how long away
+              currentunix = (now.unixtime());  //get current unix time
+              Serial.print(currentunix);
+              Serial.print(" ");                                                        //testing print unix clock
+              uint32_t framdeltaunix = (currentunix - readlongFromfram(PreviousUnix));  //get delta sec of unix time
+              uint32_t cumunix = readlongFromfram(CumUnix);                             //Get cumulative unix mission clock
+              writelongfram((cumunix + framdeltaunix), CumUnix);                        //add and Save cumulative unix time Mission
+              writelongfram(currentunix, PreviousUnix);                                 //reset PreviousUnix to current for next time
+                                                                                        //
+                                                                                        //********* END_NO_END_NO_END_NO_END_NO_END_NO_END_NO_ **************************
+              //
+              //  This part prints out every second
+              //
+              Serial.print(": Mission Clock = ");       //testing print mission clock
+              Serial.print(readlongFromfram(CumUnix));  //mission clock
+              Serial.print(" is ");                     //spacer
+              //
+              //------Output to the terminal  days hours min sec
+              //
+              getmissionclk();
+              Serial.print(xd);
+              Serial.print(" Days  ");
+              Serial.print(xh);
+              Serial.print(" Hours  ");
+              Serial.print(xm);
+              Serial.print(" Min  ");
+              Serial.print(xs);
+              Serial.println(" Sec");
+              //
+              //
+              DotStarOff();
+            }             
           } 
-
         }
       }
 
